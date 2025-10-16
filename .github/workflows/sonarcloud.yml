@@ -44,13 +44,13 @@ jobs:
       - name: Build
         run: dotnet build NetSdrClient.sln -c Release --no-restore
       
-      # - name: Tests with coverage (OpenCover)
-      #   run: |
-      #     dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
-      #       /p:CollectCoverage=true `
-      #       /p:CoverletOutput=TestResults/coverage.xml `
-      #       /p:CoverletOutputFormat=opencover
-      #   shell: pwsh
+      - name: Tests with coverage (OpenCover) # <-- Більше немає #
+        run: |                               # <-- Більше немає #
+          dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build ` # <-- Більше немає #
+            /p:CollectCoverage=true `        # <-- Більше немає #
+            /p:CoverletOutput=TestResults/coverage.xml ` # <-- Більше немає #
+            /p:CoverletOutputFormat=opencover# <-- Більше немає #
+        shell: pwsh                         # <-- Більше немає #
       
       # 3) END: SonarScanner
       - name: SonarScanner End

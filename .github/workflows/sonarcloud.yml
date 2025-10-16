@@ -52,18 +52,29 @@ jobs:
 
       # 1) BEGIN: SonarScanner for .NET
       - name: SonarScanner Begin
+        # Додайте блок env: тут
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # <--- Секрет передається у змінну середовища
+          
         run: |
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           dotnet sonarscanner begin `
           /d:sonar.projectKey="Andreypups_reinjiniring1" `
           /d:sonar.organization="andreypups" `
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+          /d:sonar.token="$env:SONAR_TOKEN" ` # <--- ВИКОРИСТОВУЄМО ЗМІННУ СЕРЕДОВИЩА PowerShell
           /d:sonar.cs.opencover.reportsPaths="**/coverage.xml" `
           /d:sonar.cpd.cs.minimumTokens=40 `
           /d:sonar.cpd.cs.minimumLines=5 `
           /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml `
           /d:sonar.qualitygate.wait=true
+        shell: pwsh
+      
+      # Також виправте крок END: SonarScanner
+      - name: SonarScanner End
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # <--- Додайте env: і тут
+        run: dotnet sonarscanner end /d:sonar.token="$env:SONAR_TOKEN" # <--- ВИКОРИСТОВУЄМО ЗМІННУ СЕРЕДОВИЩА PowerShell
         shell: pwsh
       # 2) BUILD & TEST
       - name: Restore

@@ -56,8 +56,8 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           dotnet sonarscanner begin `
-          /d:sonar.projectKey="Andreypups_reinjiniring1" ` # Ваш ключ проекту
-          /d:sonar.organization="andreypups" `             # Ваш ключ організації
+          /d:sonar.projectKey="Andreypups_reinjiniring1" ` 
+          /d:sonar.organization="andreypups" `             
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
           /d:sonar.cs.opencover.reportsPaths="**/coverage.xml" `
           /d:sonar.cpd.cs.minimumTokens=40 `
@@ -81,4 +81,3 @@ jobs:
       - name: SonarScanner End
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         shell: pwsh
-що тут не так в цьому коді, що він не проїодить перевірку

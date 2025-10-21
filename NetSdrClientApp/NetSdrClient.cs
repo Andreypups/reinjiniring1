@@ -10,22 +10,19 @@ using System.Threading.Tasks;
 using static NetSdrClientApp.Messages.NetSdrMessageHelper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace NetSdrClientApp
+public class NetSdrClient
 {
-    public class NetSdrClient
-    {
-        private readonly ITcpClient _tcpClient;
-        private IUdpClient _udpClient;
-        public bool IQStarted { get; set; }
-        
-        public NetSdrClient(ITcpClient tcpClient, IUdpClient udpClient)
-        {
-            _tcpClient = tcpClient;
-            _udpClient = udpClient;
+    private readonly ITcpClient _tcpClient;
+    private readonly IUdpClient _udpClient;
+    public bool IQStarted { get; set; }
 
-            _tcpClient.MessageReceived += _tcpClient_MessageReceived;
-            _udpClient.MessageReceived += _udpClient_MessageReceived;
-        }
+    public NetSdrClient(ITcpClient tcpClient, IUdpClient udpClient)
+    {
+        _tcpClient = tcpClient;
+        _udpClient = udpClient;
+        _tcpClient.MessageReceived += _tcpClient_MessageReceived;
+        _udpClient.MessageReceived += _udpClient_MessageReceived;
+    }
 
         public async Task ConnectAsync()
         {

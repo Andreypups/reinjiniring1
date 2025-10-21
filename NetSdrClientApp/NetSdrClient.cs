@@ -23,6 +23,7 @@ public class NetSdrClient
         _tcpClient.MessageReceived += _tcpClient_MessageReceived;
         _udpClient.MessageReceived += _udpClient_MessageReceived;
     }
+}
 
         public async Task ConnectAsync()
         {

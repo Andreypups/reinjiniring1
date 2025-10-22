@@ -137,13 +137,13 @@ public class NetSdrClient
 
         private TaskCompletionSource<byte[]> responseTaskSource;
 
-        private async Task<byte[]> SendTcpRequest(byte[] msg)
-        {
-            if (!_tcpClient.Connected)
-            {
-                Console.WriteLine("No active connection.");
-                return null;
-            }
+        private async Task<byte[]?> SendTcpRequest(byte[] msg) // Додано '?'
+{
+    if (!_tcpClient.Connected)
+    {
+        Console.WriteLine("No active connection.");
+        return null;
+    }
 
             responseTaskSource = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
             var responseTask = responseTaskSource.Task;

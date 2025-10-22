@@ -18,13 +18,12 @@ public class NetSdrClient
 
     public NetSdrClient(ITcpClient tcpClient, IUdpClient udpClient)
     {
-        _tcpClient = tcpClient;
-        _udpClient = udpClient;
-        _tcpClient.MessageReceived += _tcpClient_MessageReceived;
-        _udpClient.MessageReceived += _udpClient_MessageReceived;
+             _tcpClient = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
+             _udpClient = udpClient ?? throw new ArgumentNullException(nameof(udpClient));
+             _tcpClient.MessageReceived += _tcpClient_MessageReceived;
+             _udpClient.MessageReceived += _udpClient_MessageReceived;
     }
 }
-
         public async Task ConnectAsync()
         {
             if (!_tcpClient.Connected)

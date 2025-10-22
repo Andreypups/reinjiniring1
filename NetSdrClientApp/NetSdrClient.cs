@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using static NetSdrClientApp.Messages.NetSdrMessageHelper;
+using System.IO; // Додано для FileStream та BinaryWriter
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class NetSdrClient
@@ -117,15 +118,22 @@ public class NetSdrClient
 
             Console.WriteLine($"Samples recieved: " + body.Select(b => Convert.ToString(b, toBase: 16)).Aggregate((l, r) => $"{l} {r}"));
 
+            try
+        {
             using (FileStream fs = new FileStream("samples.bin", FileMode.Append, FileAccess.Write, FileShare.Read))
             using (BinaryWriter sw = new BinaryWriter(fs))
             {
                 foreach (var sample in samples)
                 {
-                    sw.Write((short)sample); //write 16 bit per sample as configured 
+                    sw.Write((short)sample); //write 16 bit per sample as configured
                 }
             }
         }
+        catch (IOException ex)
+       {
+           Console.WriteLine($"Error writing to samples.bin: {ex.Message}");
+         }
+     }
 
         private TaskCompletionSource<byte[]> responseTaskSource;
 

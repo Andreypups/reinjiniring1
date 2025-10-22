@@ -8,26 +8,23 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using static NetSdrClientApp.Messages.NetSdrMessageHelper;
+using System.IO; // Додано для FileStream та BinaryWriter
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace NetSdrClientApp
+public class NetSdrClient
 {
-    public class NetSdrClient
+    private readonly ITcpClient _tcpClient;
+    private readonly IUdpClient _udpClient;
+    public bool IQStarted { get; set; }
+
+    public NetSdrClient(ITcpClient tcpClient, IUdpClient udpClient)
     {
-        private ITcpClient _tcpClient;
-        private IUdpClient _udpClient;
-
-        public bool IQStarted { get; set; }
-
-        public NetSdrClient(ITcpClient tcpClient, IUdpClient udpClient)
-        {
-            _tcpClient = tcpClient;
-            _udpClient = udpClient;
-
-            _tcpClient.MessageReceived += _tcpClient_MessageReceived;
-            _udpClient.MessageReceived += _udpClient_MessageReceived;
-        }
-
+             _tcpClient = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
+             _udpClient = udpClient ?? throw new ArgumentNullException(nameof(udpClient));
+             _tcpClient.MessageReceived += _tcpClient_MessageReceived;
+             _udpClient.MessageReceived += _udpClient_MessageReceived;
+    }
+}
         public async Task ConnectAsync()
         {
             if (!_tcpClient.Connected)
@@ -66,7 +63,7 @@ namespace NetSdrClientApp
                 return;
             }
 
-;           var iqDataMode = (byte)0x80;
+            var iqDataMode = (byte)0x80;
             var start = (byte)0x02;
             var fifo16bitCaptureMode = (byte)0x01;
             var n = (byte)1;
@@ -121,25 +118,32 @@ namespace NetSdrClientApp
 
             Console.WriteLine($"Samples recieved: " + body.Select(b => Convert.ToString(b, toBase: 16)).Aggregate((l, r) => $"{l} {r}"));
 
+            try
+        {
             using (FileStream fs = new FileStream("samples.bin", FileMode.Append, FileAccess.Write, FileShare.Read))
             using (BinaryWriter sw = new BinaryWriter(fs))
             {
                 foreach (var sample in samples)
                 {
-                    sw.Write((short)sample); //write 16 bit per sample as configured 
+                    sw.Write((short)sample); //write 16 bit per sample as configured
                 }
             }
         }
+        catch (IOException ex)
+       {
+           Console.WriteLine($"Error writing to samples.bin: {ex.Message}");
+         }
+     }
 
         private TaskCompletionSource<byte[]> responseTaskSource;
 
-        private async Task<byte[]> SendTcpRequest(byte[] msg)
-        {
-            if (!_tcpClient.Connected)
-            {
-                Console.WriteLine("No active connection.");
-                return null;
-            }
+        private async Task<byte[]?> SendTcpRequest(byte[] msg) // Додано '?'
+{
+    if (!_tcpClient.Connected)
+    {
+        Console.WriteLine("No active connection.");
+        return null;
+    }
 
             responseTaskSource = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
             var responseTask = responseTaskSource.Task;
@@ -153,7 +157,6 @@ namespace NetSdrClientApp
 
         private void _tcpClient_MessageReceived(object? sender, byte[] e)
         {
-            //TODO: add Unsolicited messages handling here
             if (responseTaskSource != null)
             {
                 responseTaskSource.SetResult(e);

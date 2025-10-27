@@ -25,7 +25,7 @@ namespace NetSdrClientApp
             _tcpClient = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
             _udpClient = udpClient ?? throw new ArgumentNullException(nameof(udpClient));
             _tcpClient.MessageReceived += _tcpClient_MessageReceived;
-            _udpClient.MessageReceived += _udpClient_MessageReceived;
+            _udpClient.MessageReceived += (sender, e) => HandleUdpMessage(e);
         }
 
         public async Task ConnectAsync()
@@ -113,7 +113,7 @@ namespace NetSdrClientApp
             await SendTcpRequest(msg);
         }
 
-        private void _udpClient_MessageReceived(object? sender, byte[] e)
+        private static void HandleUdpMessage(byte[] e)
         {
             NetSdrMessageHelper.TranslateMessage(e, out _, out _, out _, out byte[] body);
             var samples = NetSdrMessageHelper.GetSamples(16, body);

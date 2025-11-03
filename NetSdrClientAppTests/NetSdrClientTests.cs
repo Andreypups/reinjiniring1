@@ -115,5 +115,75 @@ public class NetSdrClientTests
         Assert.That(_client.IQStarted, Is.False);
     }
 
-    //TODO: cover the rest of the NetSdrClient code here
+    [Test]
+    public async Task ChangeFrequencyNoConnectionTest()
+    {
+        // Arrange
+        long frequency = 14200000; // 14.2 MHz
+        int channel = 0;
+    
+        // Act
+        await _client.ChangeFrequencyAsync(frequency, channel);
+    
+        // Assert
+        _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Never);
+    }
+
+    [Test]
+    public async Task ChangeFrequencyTest()
+    {
+        // Arrange
+        await _client.ConnectAsync();
+        long frequency = 14200000; // 14.2 MHz
+        int channel = 0;
+    
+        // Act
+        await _client.ChangeFrequencyAsync(frequency, channel);
+    
+        // Assert
+        _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.AtLeast(4));
+    }
+
+    [Test]
+    public async Task ChangeFrequencyWithDifferentChannelsTest()
+    {
+        // Arrange
+        await _client.ConnectAsync();
+        long frequency = 7100000;
+    
+        // Act
+        await _client.ChangeFrequencyAsync(frequency, channel: 0);
+        await _client.ChangeFrequencyAsync(frequency, channel: 1);
+    
+        // Assert
+        _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.AtLeast(5));
+    }
+
+    [Test]
+    public void ConstructorWithNullTcpClientThrowsException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => 
+            new NetSdrClient(null, _updMock.Object));
+    }
+
+    [Test]
+    public void ConstructorWithNullUdpClientThrowsException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => 
+            new NetSdrClient(_tcpMock.Object, null));
+    }
+
+    [Test]
+    public async Task StopIQWhenNotConnectedTest()
+    {
+        // Act
+        await _client.StopIQAsync();
+    
+        // Assert
+        _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Never);
+        _updMock.Verify(udp => udp.StopListening(), Times.Once);
+        Assert.That(_client.IQStarted, Is.False);
+    }
 }

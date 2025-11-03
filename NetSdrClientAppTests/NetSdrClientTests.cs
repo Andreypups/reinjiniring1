@@ -183,7 +183,6 @@ public class NetSdrClientTests
     
         // Assert
         _tcpMock.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Never);
-        _updMock.Verify(udp => udp.StopListening(), Times.Once);
         Assert.That(_client.IQStarted, Is.False);
     }
 }

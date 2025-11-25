@@ -58,15 +58,5 @@ namespace EchoTspServerTests
             // Assert
             act.Should().NotThrow();
         }
-
-        [Test]
-        public void EchoServer_WithValidPort_CreatesSuccessfully()
-        {
-            // Act
-            Action act = () => new EchoServer.EchoServer(8080, _loggerMock.Object, _messageHandler);
-
-            // Assert
-            act.Should().NotThrow();
-        }
     }
 }

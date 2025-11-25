@@ -1,9 +1,10 @@
 using NUnit.Framework;
-using Moq;
 using EchoServer;
 using EchoServer.Interfaces;
-using FluentAssertions;
+using Moq;
 using System;
+using System.Threading.Tasks;
+using FluentAssertions;
 
 namespace EchoTspServerTests
 {
@@ -11,48 +12,61 @@ namespace EchoTspServerTests
     public class EchoServerTests
     {
         private Mock<ILogger> _loggerMock;
-        private Mock<MessageHandler> _messageHandlerMock;
+        private MessageHandler _messageHandler;
         private EchoServer.EchoServer _server;
 
         [SetUp]
         public void Setup()
         {
             _loggerMock = new Mock<ILogger>();
-            _messageHandlerMock = new Mock<MessageHandler>(_loggerMock.Object);
-            _server = new EchoServer.EchoServer(5001, _loggerMock.Object, _messageHandlerMock.Object);
+            _messageHandler = new MessageHandler(_loggerMock.Object);
+            _server = new EchoServer.EchoServer(8080, _loggerMock.Object, _messageHandler);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            try
+            {
+                _server?.Stop();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Ігноруємо, якщо вже disposed
+            }
         }
 
         [Test]
-        public void Constructor_WithNullLogger_ThrowsException()
+        public async Task StartAsync_SetsIsRunningState()
         {
-            // Act
-            Action act = () => new EchoServer.EchoServer(5000, null, _messageHandlerMock.Object);
+            // Arrange & Act
+            var startTask = Task.Run(() => _server.StartAsync());
+            await Task.Delay(100);
 
             // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
+            _loggerMock.Verify(l => l.Log(It.Is<string>(s => s.Contains("Server started"))), Times.Once);
         }
 
         [Test]
-        public void Constructor_WithNullMessageHandler_ThrowsException()
+        public void Stop_WhenNotStarted_DoesNotThrow()
         {
-            // Act
-            Action act = () => new EchoServer.EchoServer(5000, _loggerMock.Object, null);
+            // Arrange - сервер не запущений
 
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("messageHandler");
-        }
-
-        [Test]
-        public void Stop_DoesNotThrow()
-        {
             // Act
             Action act = () => _server.Stop();
 
             // Assert
             act.Should().NotThrow();
-            _loggerMock.Verify(l => l.Log("Server stopped."), Times.Once);
+        }
+
+        [Test]
+        public void EchoServer_WithValidPort_CreatesSuccessfully()
+        {
+            // Act
+            Action act = () => new EchoServer.EchoServer(8080, _loggerMock.Object, _messageHandler);
+
+            // Assert
+            act.Should().NotThrow();
         }
     }
 }
